@@ -141,3 +141,4 @@ TODO
 [Distributed Systems in Rust]: todo
 [The Rust Book]: https://doc.rust-lang.org/book/
 [plan]: plan.md
+[serde]: todo

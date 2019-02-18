@@ -1,0 +1,13 @@
+{
+  "name": "rust-training",
+  "version": "1.0.0",
+  "description": "A Rust training course",
+  "main": "index.js",
+  "repository": "https://github.com/pingcap/talent-training",
+  "author": "Brian Anderson <andersrb@gmail.com>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "marked": "^0.6.0",
+    "reveal.js": "^3.7.0"
+  }
+}
