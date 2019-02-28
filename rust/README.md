@@ -93,13 +93,24 @@ Links to the _readings_, _lessons_, and _slides_ are in the [lesson plan][plan],
 presented in the order they should be followed. See the lesson plan for
 further suggestions on how to get the most out of this course.
 
-All the material related to this course is in the
+All material for this course is in the
 
-> https://github.com/pingcap/talent-training
+> [https://github.com/pingcap/talent-training]
 
 git repository on GitHub, in the `rust` subdirectory. You may want a copy of it
 on your local computer, particularly for easy access to the conformance tests
 for each project.
+
+All material for this course can be viewed as a static website, online at
+
+> [https://todo.later]
+
+or on your own local computer with a simple web server. To view the website
+locally, first install a simple static web site server, such as
+`basic-http-server`, like `cargo install basic-http-server`, run it from within
+the local directory for the repository, then navigate to
+
+> [http://localhost:4000/rust/index.html]
 
 Get started now - [view the lesson plan][plan].
 

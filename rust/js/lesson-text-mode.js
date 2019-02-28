@@ -12,5 +12,5 @@ export function init(config) {
 
     console.log(`md url: ${mdUrl}`);
 
-    common.insertRenderedRile(config, mdUrl);
+    common.insertRenderedFile(config, mdUrl);
 }

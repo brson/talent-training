@@ -18,14 +18,24 @@
         return uri.split("/").slice(0,-1).join("/") + "/";
       }
 
-      function baseURI(docUri) {
+      function uriDir(docUri) {
         if (docUri.lastIndexOf("?") > 0) {
           docUri = docUri.substr(0, docUri.lastIndexOf("?"));
+        }
+
+        if (docUri.lastIndexOf("#") > 0) {
+          docUri = docUri.substr(0, docUri.lastIndexOf("#"));
         }
 
         if (docUri.endsWith(".html")) {
           docUri = trimURI(docUri);
         }
+
+        return docUri;
+      }
+    
+      function baseURI(docUri) {
+        docUri = uriDir(docUri);
 
         if (docUri.endsWith("lessons/")) {
           docUri = trimURI(docUri);
@@ -37,20 +47,30 @@
       }
 
       let docUri = document.URL;
-      // reveal rewrites the url to end with this
+      // reveal rewrites the url to end with "#/", "#/1", etc.
       if (docUri.indexOf("#/") > 0) {
         docUri = docUri.substr(0, docUri.lastIndexOf("#/"));
       }
 
       // Some global we might need later
+      document.URI_DIR = uriDir(docUri);
       document.BASE_URI = baseURI(docUri);
       document.ORIGINAL_URI = docUri;
 
-      console.log(`baseURI: ${document.BASE_URI}`);
+      console.log(`URI_DIR: ${document.URI_DIR}`);
+      console.log(`BASE_URI: ${document.BASE_URI}`);
+      console.log(`ORIGINAL_URI: ${document.ORIGINAL_URI}`);
 
-      // Set the base URI no that paths can all be relative to the top
+      // Set the base URI so that paths can all be relative to the top
       // level directory, making this page to work regardless ef
       // where it sits in the directory hierachy.
+      //
+      // I'm not convinced this is the best way to deal with the issue
+      // since so many links are loaded into the page dynamically and rewritten
+      // in the process to be based off the baseUrl.
+      //
+      // It might be easier to make relative links work as expected, and
+      // dynamically modify all the URLs in _this_file to work with the base URI
       let head = document.head;
       let base = document.createElement("base");
       base.setAttribute("href", baseURI(docUri));

@@ -41,7 +41,7 @@ export function insertRenderedFile(config, mdUrl) {
     });
 }
 
-function rewriteUrls(element) {
+export function rewriteUrls(element) {
     let elements = element.getElementsByTagName("a");
     for (let a of elements) {
         if (!a.hasAttribute("href")) {
@@ -60,6 +60,9 @@ function rewriteUrls(element) {
 }
 
 function htmlUrlFromMdUrl(url) {
+
+    url = offsetFromBaseUrl(url);
+    
     let ext = ".md";
     let last = url.lastIndexOf(".md");
     if (last === -1) {
@@ -68,4 +71,38 @@ function htmlUrlFromMdUrl(url) {
     let rem = last + ext.length;
     let newUrl = url.substring(0, last) + ".html" + url.substring(rem);
     return newUrl;
+}
+
+function offsetFromBaseUrl(url) {
+    let urlDir = document.URI_DIR;
+    let baseUrl = document.BASE_URI;
+
+    if (!urlDir.startsWith(baseUrl)) {
+        throw `URL ${urlDir} is not prefixed by base URL ${baseUrl}`;
+    }
+
+    if (isRelative(url)) {
+        let prefix = urlDir.substring(baseUrl.length);
+        if (prefix.endsWith("/")) {
+            prefix = prefix.substring(0, prefix.length - 1);
+        }
+
+        if (prefix !== "") {
+            url = `${prefix}/${url}`;
+        }
+    }
+
+    return url;
+}
+
+function isRelative(url) {
+    if (url.indexOf("://") > -1) {
+        return false;
+    }
+
+    if (url.startsWith("/")) {
+        return false;
+    }
+
+    return true;
 }

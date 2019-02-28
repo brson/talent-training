@@ -8,9 +8,12 @@ export function init(config) {
 	console.log("lesson slides mode");
 
     let reveal_mod = "node_modules/reveal.js/js/reveal";
-    let marked_mod = "node_modules/reveal.js/plugin/markdown/marked";
 
+    // This is a hack to keep the markdown module from attempting to require the
+    // marked module synchronously, as if it were running under node. It is
+    // reset after reveal is finished loading.
     define.amd = false;
+
     require([reveal_mod], function(_reveal) {
 
         console.log("holy reveal!");
@@ -34,8 +37,8 @@ export function init(config) {
         let mdSection = document.createElement("section");
         mdSection.setAttribute("data-markdown", mdUrl);
         mdSection.setAttribute("data-charset", "utf-8");
-        mdSection.setAttribute("data-separator", "^---")
-        mdSection.setAttribute("data-separator-notes", "^Text:")
+        mdSection.setAttribute("data-separator", "^\n\n\n\n")
+        mdSection.setAttribute("data-separator-notes", "^<!-- text -->")
         slidesDiv.appendChild(mdSection);
 
         let body = document.querySelector("body");
@@ -48,11 +51,17 @@ export function init(config) {
             center: true,
             dependencies: [
                 { src: 'node_modules/reveal.js/plugin/markdown/marked.js' },
-                { src: 'node_modules/reveal.js/plugin/markdown/markdown.js', callback: function() { define.amd = true; } },
+                { src: 'node_modules/reveal.js/plugin/markdown/markdown.js' },
                 { src: 'node_modules/reveal.js/plugin/notes/notes.js', async: true }
                 //{ src: 'node_modules/reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { fetchAllCode(); hljs.initHighlightingOnLoad(); addButtons(); } },
             ]
         };
+
+        reveal.addEventListener("ready", function() {
+            define.amd = true;
+
+            common.rewriteUrls(revealDiv);
+        });
 
         reveal.initialize(revealCfg);
     });
