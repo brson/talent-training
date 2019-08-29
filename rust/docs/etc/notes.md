@@ -183,6 +183,8 @@ in the README.
 - say why we're doing each exercise or diversion
 - publishing on crates.io
 - critcmp
+- Result -> KvsResult?
+- Make it clearer what Result is?
 
 # Future projects
 

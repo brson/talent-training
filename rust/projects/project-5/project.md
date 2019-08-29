@@ -12,14 +12,15 @@ with _asynchronous_ networking over a custom protocol.
 - Use boxed futures to handle difficult type-system problems
 - Use `impl Trait` to create anonymous `Future` types
 
-**Topics**: asynchrony, futures, tokio, `impl Trait`.
+**Topics**: asynchrony, futures, tokio, "impl Trait".
 
 **Extensions**: tokio-fs.
 
 - [Introduction](#user-content-introduction)
 - [Project spec](#user-content-project-spec)
 - [Project setup](#user-content-project-setup)
-- [Background: Thinking in futures, in Rust](#user-content-background-thinking-in-futures,-in-rust)
+- [Background: The state of async Rust](#user-content-background-the-state-of-async-rust)
+- [Background: Thinking in futures, in Rust](#user-content-background-thinking-in-futures-in-rust)
 - [Part 1: Introducing tokio to the client](#user-content-part-1-introducing-tokio-to-the-client)
 - [Part 2: Converting `KvsClient` to boxed futures](#user-content-part-2-converting-kvsclient-to-boxed-futures)
 - [Part 3: `KvsClient` with explicit future types](#user-content-part-3-kvsclient-with-explicit-future-types)
@@ -47,10 +48,19 @@ Because learning to program with Rust futures is especially challenging, and
 existing documentation on the subject is limited, the scope of this project is
 relatively modest, and it contains more direct explanation than past projects.
 
+This project will focus on learning to program with futures directly. Later
+projects will introduce [async / await], a language feature that makes writing
+asynchronous code more naturally. Learning how to write futures first will make
+understanding async / await easier.
+
 Be sure to read the background readings on this project. And if you get
 frustrated, then forgive yourself, take a break, and try again with a fresh
 mind. Writing asynchronous Rust is difficult for everybody.
 
+**Note: this and future projects temporarily require the nightly compiler. See
+["Part 1: Using the nightly toolchain"][part-1] for rationale and instructions.**
+
+[part-1]: #user-content-part-1-using-the-nightly-toolchain
 
 ## Project spec
 
@@ -136,7 +146,85 @@ panic-control = "0.1.4"
 
 Unlike with previous projects, don't bother to fill in enough type definitions
 to make the test suite compile. Doing so would require jumping a number of steps
-ahead at once. The text will indicate when to working with the test suite.
+ahead at once. The text will indicate when to start working with the test suite.
+
+
+## Background: The state of Rust futures
+
+Asynchronous Rust has a long history, and at the time of this writing (September
+2019) neither the language features or ecosystem are mature. The world of Rust
+async is in a transitional period, moving from futures 0.1, to std futures
+(A.K.A. "futures 0.3", and [async / await].
+
+This course is going to focus on std futures, tokio 0.2, and async / await. As
+such, it will be depending on crates that are still in an alpha state, and that
+depend on the nightly compiler. As such, *this project will depend on the nightly
+compiler until async / await is released with Rust 1.39, in November 2019,
+after which the course will be updated to use the stable compiler again*.
+
+Since Rust 1.0 the best practice for writing futures-based asynchronous code in
+Rust has been to use Tokio 0.1. Tokio was the first production-ready
+asynchronous programming library for Rust and pioneered many of the libraries
+and techniques used in asynchronous programming.
+
+Tokio 0.1 is built around futures 0.1, a standalone crate.
+
+As of Rust 1.36, released in July 2019, the `Futures` trait is defined in the standard
+library, as `std::future::Future`. This definition of `Future` though is _different_
+from futures 0.1, and is designed to work more seamlessly with [async / await].
+
+`futures::Future` as of 0.1:
+
+```rust
+pub trait Future {
+    type Item;
+    type Error;
+
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error>;
+
+	<... a variety of built-in future "combinators", like ...>
+
+    fn map<F, U>(self, f: F) -> Map<Self, F>
+    where
+        F: FnOnce(Self::Item) -> U,
+        Self: Sized { ... }
+}
+```
+
+`std::future::Future`:
+
+```rust
+pub trait Future {
+    type Output;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output>;
+}
+```
+
+There are 3 differences between the 0.1 `Future` and std `Future`:
+
+1) There is no longer an `Error` associated type. Instead the `Output` type
+   should be a `Result` whenever an error is possible. This in particular makes
+   async function signatures look more like non-async function signatures.
+
+2): std `Future` does not define any future combinators. Those are defined
+   outside of std, notably in the [`futures-preview`] crate.
+
+3): The signature of `poll` has changed significantly. `poll` is a low-level
+   method written by implementors of `Future`. It does not need to be understood
+   to write futures-based code, and won't be discussed in this chapter.
+
+The [`futures-preview`] crate is version 0.3, and as such std futures are often
+also refered to as futures 0.3. The `Future` defined within is simply a reexport
+of `std::future::Future`. Presumably, `futures-preview` will someday be renamed
+to simply `futures`. As of now though, using std futures will generally also
+entail using the `futures-preview` crate.
+
+[tokio 0.1]: https://docs.rs/tokio/0.1
+[futures 0.1]: docs.rs/futures/0.1
+[async / await]: https://rust-lang.github.io/async-book/01_getting_started/04_async_await_primer.html
+[`std::future::Future`]: https://doc.rust-lang.org/std/future/trait.Future.html
+[`futures-preview`]: https://docs.rs/futures-preview/
 
 
 ## Background: Thinking in futures, in Rust
@@ -153,26 +241,9 @@ ahead at once. The text will indicate when to working with the test suite.
 - note about async / await
 
 
-## Part 1: Introducing tokio to the client
+## Part 1: Using the nightly toolchain
 
-TODO throw this away
-
-Ultimately we're going to convert both the client and server to futures, but
-since the client is so simple, that's where we'll start. And we're going to
-introduce the tokio runtime first, while using your existing synchronous
-`KvsClient`.
-
-The 
-
-for the client we're going to introduce the async runtime while keeping
-the sync `KvsClient`, then convert the `KvsClient`. The `connect` method
-of `KvsClient`. note that as a library `KvsClient` can offer the most
-efficiency based on futures, but our kvs-client bin doesn't take advantage
-of it, so the bin is going to look a bit silly running a single future
-and exiting.
-
-TODO @sticnarf - see if you can write test cases that are agnostic to the
-concrete future types, so they work with all the below strategies.
+TODO
 
 
 ## Part 2: Converting `KvsClient` to boxed futures
