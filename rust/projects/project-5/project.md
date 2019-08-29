@@ -26,7 +26,7 @@ with _asynchronous_ networking over a custom protocol.
 - [Part 4: `KvsClient` with anonymous future types](#user-content-part-4-kvsclient-with-anonymous-future-types)
 - [Part 5: Making `ThreadPool` sharable](#user-content-part-5-making-threadpool-sharable)
 - [Part 6: Converting `KvsEngine` to futures](#user-content-part-6-converting-kvsengine-to-futures)
-- [Part 7: Driving `KvsEngine` with tokio](#user-content-part-7-driving-kvsengine-with-tokio)
+- [Part 7: Converting `KvsServer` to tokio](#user-content-part-7-converting-kvsserver-to-tokio)
 - [Extension 1: Converting to tokio-fs](#user-content-extension-1-converting-to-tokio-fs)
 
 
@@ -67,8 +67,11 @@ The difference this time is that all the networking is performed asynchronously.
 
 As part of the conversion to asynchrony, the `KvsClient` will present a
 futures-based API, and the `KvsEngine` trait will also present a futures-based
-API, even while it is implemented with blocking (synchronous) I/O via a thread
-pool.
+API, even while it remains implemented with blocking (synchronous) I/O via a
+thread pool (for now).
+
+Up until this point the API for KvsClient has been unspecified. In this
+project the API will be explicitly specified.
 
 Your `KvsServer` will be based on the tokio runtime, which handles the
 distribution of asynchronous work to multiple threads on its own (tokio itself
@@ -83,21 +86,31 @@ your thread pool from multiple threads, your `ThreadPool` trait and its
 implementations will become shared types implementing `Clone + Send + 'sync`, as
 your `KvsEngine` is.
 
-Because you will be experimenting with multiple definitions of the futures
-returned by these types, they aren't fully specified here, and instead will be
-specified as they are called for.
+To gain experience you will experimenting with multiple definitions of the
+futures returned by these types. You will work with function
+signatures like all the following:
 
-More specifically, you will work with function signatures like all the
-following:
-
-- `Client::get(&mut self, key: String) -> Box<Future<Item = Option<String>, Error = Error>`
+- `Client::get(&mut self, key: String) -> Box<dyn Future<Item = Option<String>, Error = Error>`
 
 - `Client::get(&mut self, key: String) -> future::SomeExplicitCombinator<...>`
 
 - `Client::get(&mut self, key: String) -> impl Future<Item = Option<String>, Error = Error>`
 
-- `Client::get(&mut self, key: String) -> ClientGetFuture`
+Ultimately, `KvsClient` will have the following signature:
 
+```rust
+impl KvsClient {
+    // TODO
+}
+```
+
+`KvsEngine` will have the following signature:
+
+```rust
+pub trait KvsEngine: Clone + Send + 'static {
+    // TODO
+}
+```
 
 
 ## Project setup
@@ -141,6 +154,8 @@ ahead at once. The text will indicate when to working with the test suite.
 
 
 ## Part 1: Introducing tokio to the client
+
+TODO throw this away
 
 Ultimately we're going to convert both the client and server to futures, but
 since the client is so simple, that's where we'll start. And we're going to
@@ -186,7 +201,7 @@ underlying runtime are independent, and just general provide a spectrum of
 experience.
 
 
-## Part 7: Driving `KvsEngine` with tokio
+## Part 7: Converting `KvsServer` to tokio
 
 note that even though we have ourselves have written very little asynchronous
 code, that tokio itself is distributing asynchronous work across num_cpus
